@@ -1,0 +1,42 @@
+{
+    "env" {
+        "kernerSource" : "/usr/src/linux-headers-6.8.0-47-generic"
+    },
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${kernelSource}/arch/x86/include",
+                "${kernelSource}/arch/x86/include/generated",
+                "${kernelSource}/include",
+                "${kernelSource}/arch/x86/include/uapi",
+                "${kernelSource}/arch/x86/include/generated/uapi",
+                "${kernelSource}/include/uapi",
+                "${kernelSource}/include/generated/uapi",
+                "${kernelSource}/ubuntu/include",
+                "${kernelSource}/arch/x86/include/generated ",
+                "${workspaceFolder}/**"
+            ],
+            "compilerArgs": [
+                "${kernelSource}/include/linux/kconfig.h",
+                "${kernelSource}/include/linux/compiler-version.h",
+                "${kernelSource}/include/linux/compiler_types.h"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "CC_USING_FENTRY",
+                "MODULE",
+                "KBUILD_BASENAME='skel01.mod'",
+                "KBUILD_MODNAME='skel01'",
+                "__KBUILD_MODNAME=kmod_skel01",
+                "MODULE ",
+                "KBUILD_BASENAME='skel01'"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

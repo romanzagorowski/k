@@ -1,0 +1,12 @@
+{
+    "makefile.configureOnOpen": false,
+    "files.associations": {
+        "module.h": "c",
+        "list.h": "c",
+        "container_of.h": "c",
+        "build_bug.h": "c",
+        "compiler.h": "c",
+        "compiler_types.h": "c",
+        "init.h": "c"
+    }
+}

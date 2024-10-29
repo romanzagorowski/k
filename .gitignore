@@ -1,0 +1,12 @@
+.*.cmd
+*.mod.c
+*.mod.o
+*.mod
+*.ko
+*.o
+Module.symvers
+modules.order
+D
+I
+1
+.vscode-ctags

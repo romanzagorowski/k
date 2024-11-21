@@ -1,6 +1,6 @@
 {
-    "env" {
-        "kernerSource" : "/usr/src/linux-headers-6.8.0-47-generic"
+    "env": {
+        "kernelSource" : "/usr/src/linux-headers-6.8.0-48-generic"
     },
     "configurations": [
         {
@@ -14,7 +14,7 @@
                 "${kernelSource}/include/uapi",
                 "${kernelSource}/include/generated/uapi",
                 "${kernelSource}/ubuntu/include",
-                "${kernelSource}/arch/x86/include/generated ",
+                "${kernelSource}/arch/x86/include/generated",
                 "${workspaceFolder}/**"
             ],
             "compilerArgs": [

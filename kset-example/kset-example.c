@@ -26,21 +26,21 @@
  * This is our "object" that we will create a few of and register them with
  * sysfs.
  */
-struct foo_obj {
+struct xyz_obj {
 	struct kobject kobj;
 	int foo;
 	int baz;
 	int bar;
 };
-#define to_foo_obj(x) container_of(x, struct foo_obj, kobj)
+#define to_xyz_obj(x) container_of(x, struct xyz_obj, kobj)
 
-/* a custom attribute that works just for a struct foo_obj. */
-struct foo_attribute {
+/* a custom attribute of a struct xyz_obj. */
+struct xyz_attribute {
 	struct attribute attr;
-	ssize_t (*show)(struct foo_obj *foo, struct foo_attribute *attr, char *buf);
-	ssize_t (*store)(struct foo_obj *foo, struct foo_attribute *attr, const char *buf, size_t count);
+	ssize_t (*show)(struct xyz_obj *xyz, struct xyz_attribute *attr, char *buf);
+	ssize_t (*store)(struct xyz_obj *xyz, struct xyz_attribute *attr, const char *buf, size_t count);
 };
-#define to_foo_attr(x) container_of(x, struct foo_attribute, attr)
+#define to_xyz_attr(x) container_of(x, struct xyz_attribute, attr)
 
 /*
  * The default show function that must be passed to sysfs.  This will be
@@ -49,46 +49,44 @@ struct foo_attribute {
  * transpose back from a "default" kobject to our custom struct foo_obj and
  * then call the show function for that specific object.
  */
-static ssize_t foo_attr_show(struct kobject *kobj,
-			     struct attribute *attr,
-			     char *buf)
+static ssize_t xyz_attr_show(
+	struct kobject *kobj,
+	struct attribute *attr,
+	char *buf
+	)
 {
-	struct foo_attribute *attribute;
-	struct foo_obj *foo;
+	struct xyz_attribute *xyz_attr = to_xyz_attr(attr);	// to call show() on it
+	struct xyz_obj *xyz_obj = to_xyz_obj(kobj);			// to pass to show()
 
-	attribute = to_foo_attr(attr);
-	foo = to_foo_obj(kobj);
-
-	if (!attribute->show)
+	if (!xyz_attr->show)
 		return -EIO;
 
-	return attribute->show(foo, attribute, buf);
+	return xyz_attr->show(xyz_obj, xyz_attr, buf);
 }
 
 /*
  * Just like the default show function above, but this one is for when the
  * sysfs "store" is requested (when a value is written to a file.)
  */
-static ssize_t foo_attr_store(struct kobject *kobj,
-			      struct attribute *attr,
-			      const char *buf, size_t len)
+static ssize_t xyz_attr_store(
+	struct kobject *kobj,
+	struct attribute *attr,
+	const char *buf, size_t len
+	)
 {
-	struct foo_attribute *attribute;
-	struct foo_obj *foo;
+	struct xyz_attribute *xyz_attr = to_xyz_attr(attr);
+	struct xyz_obj *xyz_obj = to_xyz_obj(kobj);
 
-	attribute = to_foo_attr(attr);
-	foo = to_foo_obj(kobj);
-
-	if (!attribute->store)
+	if (!xyz_attr->store)
 		return -EIO;
 
-	return attribute->store(foo, attribute, buf, len);
+	return xyz_attr->store(xyz_obj, xyz_attr, buf, len);
 }
 
 /* Our custom sysfs_ops that we will associate with our ktype later on */
-static const struct sysfs_ops foo_sysfs_ops = {
-	.show = foo_attr_show,
-	.store = foo_attr_store,
+static const struct sysfs_ops xyz_sysfs_ops = {
+	.show = xyz_attr_show,
+	.store = xyz_attr_store,
 };
 
 /*
@@ -98,29 +96,31 @@ static const struct sysfs_ops foo_sysfs_ops = {
  * NEVER try to get away with just a "blank" release function to try to be
  * smarter than the kernel.  Turns out, no one ever is...
  */
-static void foo_release(struct kobject *kobj)
+static void xyz_release(struct kobject *kobj)
 {
-	struct foo_obj *foo;
-
-	foo = to_foo_obj(kobj);
-	kfree(foo);
+	struct xyz_obj *xyz_obj = to_xyz_obj(kobj);
+	kfree(xyz_obj);
 }
 
 /*
  * The "foo" file where the .foo variable is read from and written to.
  */
-static ssize_t foo_show(struct foo_obj *foo_obj, struct foo_attribute *attr,
-			char *buf)
+static ssize_t foo_attr_show(
+	struct xyz_obj *xyz_obj,
+	struct xyz_attribute *attr,
+	char *buf
+	)
 {
-	return sprintf(buf, "%d\n", foo_obj->foo);
+	return sprintf(buf, "%d\n", xyz_obj->foo);
 }
 
-static ssize_t foo_store(struct foo_obj *foo_obj, struct foo_attribute *attr,
-			 const char *buf, size_t count)
+static ssize_t foo_attr_store(
+	struct xyz_obj *xyz_obj, 
+	struct xyz_attribute *attr,
+	const char *buf, size_t count
+	)
 {
-	int ret;
-
-	ret = kstrtoint(buf, 10, &foo_obj->foo);
+	int ret = kstrtoint(buf, 10, &xyz_obj->foo);
 	if (ret < 0)
 		return ret;
 
@@ -128,27 +128,34 @@ static ssize_t foo_store(struct foo_obj *foo_obj, struct foo_attribute *attr,
 }
 
 /* Sysfs attributes cannot be world-writable. */
-static struct foo_attribute foo_attribute =
-	__ATTR(foo, 0664, foo_show, foo_store);
+static struct xyz_attribute foo_attribute =
+	__ATTR(foo, 0664, foo_attr_show, foo_attr_store);
 
 /*
  * More complex function where we determine which variable is being accessed by
  * looking at the attribute for the "baz" and "bar" files.
  */
-static ssize_t b_show(struct foo_obj *foo_obj, struct foo_attribute *attr,
-		      char *buf)
+static ssize_t bxx_attr_show(
+	struct xyz_obj *xyz_obj,
+	struct xyz_attribute *attr,
+	char *buf
+	)
 {
 	int var;
 
 	if (strcmp(attr->attr.name, "baz") == 0)
-		var = foo_obj->baz;
+		var = xyz_obj->baz;
 	else
-		var = foo_obj->bar;
+		var = xyz_obj->bar;
+
 	return sprintf(buf, "%d\n", var);
 }
 
-static ssize_t b_store(struct foo_obj *foo_obj, struct foo_attribute *attr,
-		       const char *buf, size_t count)
+static ssize_t bxx_attr_store(
+	struct xyz_obj *foo_obj,
+	struct xyz_attribute *attr,
+	const char *buf, size_t count
+	)
 {
 	int var, ret;
 
@@ -160,57 +167,55 @@ static ssize_t b_store(struct foo_obj *foo_obj, struct foo_attribute *attr,
 		foo_obj->baz = var;
 	else
 		foo_obj->bar = var;
+
 	return count;
 }
 
-static struct foo_attribute baz_attribute =
-	__ATTR(baz, 0664, b_show, b_store);
-static struct foo_attribute bar_attribute =
-	__ATTR(bar, 0664, b_show, b_store);
+static struct xyz_attribute baz_attribute =
+	__ATTR(baz, 0664, bxx_attr_show, bxx_attr_store);
+static struct xyz_attribute bar_attribute =
+	__ATTR(bar, 0664, bxx_attr_show, bxx_attr_store);
 
 /*
  * Create a group of attributes so that we can create and destroy them all
  * at once.
  */
-static struct attribute *foo_default_attrs[] = {
+static struct attribute *xyz_default_attrs[] = {
 	&foo_attribute.attr,
 	&baz_attribute.attr,
 	&bar_attribute.attr,
 	NULL,	/* need to NULL terminate the list of attributes */
 };
-ATTRIBUTE_GROUPS(foo_default);
+ATTRIBUTE_GROUPS(xyz_default);
 
 /*
  * Our own ktype for our kobjects.  Here we specify our sysfs ops, the
  * release function, and the set of default attributes we want created
  * whenever a kobject of this type is registered with the kernel.
  */
-static struct kobj_type foo_ktype = {
-	.sysfs_ops = &foo_sysfs_ops,
-	.release = foo_release,
-	.default_groups = foo_default_groups,
+static struct kobj_type xyz_ktype = {
+	.sysfs_ops = &xyz_sysfs_ops,
+	.release = xyz_release,
+	.default_groups = xyz_default_groups,
 };
 
 static struct kset *example_kset;
-static struct foo_obj *foo_obj;
-static struct foo_obj *bar_obj;
-static struct foo_obj *baz_obj;
+static struct xyz_obj *abc_obj;
+static struct xyz_obj *def_obj;
+static struct xyz_obj *ghi_obj;
 
-static struct foo_obj *create_foo_obj(const char *name)
+static struct xyz_obj *create_xyz_obj(const char *name)
 {
-	struct foo_obj *foo;
-	int retval;
-
 	/* allocate the memory for the whole object */
-	foo = kzalloc(sizeof(*foo), GFP_KERNEL);
-	if (!foo)
+	struct xyz_obj *xyz_obj = kzalloc(sizeof(*xyz_obj), GFP_KERNEL);
+	if (!xyz_obj)
 		return NULL;
 
 	/*
 	 * As we have a kset for this kobject, we need to set it before calling
 	 * the kobject core.
 	 */
-	foo->kobj.kset = example_kset;
+	xyz_obj->kobj.kset = example_kset;
 
 	/*
 	 * Initialize and add the kobject to the kernel.  All the default files
@@ -218,9 +223,9 @@ static struct foo_obj *create_foo_obj(const char *name)
 	 * kobject, we don't have to set a parent for the kobject, the kobject
 	 * will be placed beneath that kset automatically.
 	 */
-	retval = kobject_init_and_add(&foo->kobj, &foo_ktype, NULL, "%s", name);
-	if (retval) {
-		kobject_put(&foo->kobj);
+	const int ret = kobject_init_and_add(&xyz_obj->kobj, &xyz_ktype, NULL, "%s", name);
+	if (ret) {
+		kobject_put(&xyz_obj->kobj);
 		return NULL;
 	}
 
@@ -228,14 +233,14 @@ static struct foo_obj *create_foo_obj(const char *name)
 	 * We are always responsible for sending the uevent that the kobject
 	 * was added to the system.
 	 */
-	kobject_uevent(&foo->kobj, KOBJ_ADD);
+	kobject_uevent(&xyz_obj->kobj, KOBJ_ADD);
 
-	return foo;
+	return xyz_obj;
 }
 
-static void destroy_foo_obj(struct foo_obj *foo)
+static void destroy_xyz_obj(struct xyz_obj *xyz_obj)
 {
-	kobject_put(&foo->kobj);
+	kobject_put(&xyz_obj->kobj);
 }
 
 static int __init example_init(void)
@@ -251,24 +256,24 @@ static int __init example_init(void)
 	/*
 	 * Create three objects and register them with our kset
 	 */
-	foo_obj = create_foo_obj("foo");
-	if (!foo_obj)
+	abc_obj = create_xyz_obj("abc");
+	if (!abc_obj)
 		goto foo_error;
 
-	bar_obj = create_foo_obj("bar");
-	if (!bar_obj)
+	def_obj = create_xyz_obj("def");
+	if (!def_obj)
 		goto bar_error;
 
-	baz_obj = create_foo_obj("baz");
-	if (!baz_obj)
+	ghi_obj = create_xyz_obj("ghi");
+	if (!ghi_obj)
 		goto baz_error;
 
 	return 0;
 
 baz_error:
-	destroy_foo_obj(bar_obj);
+	destroy_xyz_obj(def_obj);
 bar_error:
-	destroy_foo_obj(foo_obj);
+	destroy_xyz_obj(abc_obj);
 foo_error:
 	kset_unregister(example_kset);
 	return -EINVAL;
@@ -276,9 +281,9 @@ foo_error:
 
 static void __exit example_exit(void)
 {
-	destroy_foo_obj(baz_obj);
-	destroy_foo_obj(bar_obj);
-	destroy_foo_obj(foo_obj);
+	destroy_xyz_obj(ghi_obj);
+	destroy_xyz_obj(def_obj);
+	destroy_xyz_obj(abc_obj);
 	kset_unregister(example_kset);
 }
 

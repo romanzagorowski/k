@@ -1,0 +1,40 @@
+{
+    "env":{
+        "kernelSource":"~/WSL2-Linux-Kernel"
+    },
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${kernelSource}/arch/x86/include",
+                "${kernelSource}/arch/x86/include/generated",
+                "${kernelSource}/include",
+                "${kernelSource}/arch/x86/include/uapi",
+                "${kernelSource}/arch/x86/include/generated/uapi",
+                "${kernelSource}/include/uapi",
+                "${kernelSource}/include/generated/uapi",
+                "${kernelSource}/arch/x86/include/generated",
+                "${workspaceFolder}/**"
+            ],
+            "compilerArgs": [
+                "-include", "./include/linux/compiler-version.h",
+                "-include", "./include/linux/kconfig.h",
+                "-include", "./include/linux/compiler_types.h"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "CC_USING_FENTRY",
+                "MODULE"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "intelliSenseMode": "linux-gcc-x64",
+            "browse": {
+                "path": ["${kernelSource}"],
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db"
+            }
+        }
+    ],
+    "version": 4
+}

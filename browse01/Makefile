@@ -1,5 +1,5 @@
 all:
-	make -C ~/WSL2-Linux-Kernel M=$(PWD) modules
+	make -C /usr/src/linux-headers-6.8.0-52-generic M=$(PWD) modules
 
 obj-m := browse01.o
 

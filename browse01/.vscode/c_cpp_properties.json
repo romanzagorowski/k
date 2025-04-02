@@ -1,6 +1,6 @@
 {
     "env":{
-        "kernelSource":"~/WSL2-Linux-Kernel"
+        "kernelSource":"/usr/src/linux-headers-6.8.0-52-generic"
     },
     "configurations": [
         {
@@ -17,9 +17,9 @@
                 "${workspaceFolder}/**"
             ],
             "compilerArgs": [
-                "-include", "./include/linux/compiler-version.h",
-                "-include", "./include/linux/kconfig.h",
-                "-include", "./include/linux/compiler_types.h"
+                // "-include", "./include/linux/compiler-version.h",
+                // "-include", "./include/linux/kconfig.h",
+                // "-include", "./include/linux/compiler_types.h"
             ],
             "defines": [
                 "__KERNEL__",

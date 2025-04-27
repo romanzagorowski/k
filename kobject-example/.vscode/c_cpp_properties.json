@@ -1,6 +1,6 @@
 {
     "env": {
-        "kernelSource" : "/usr/src/linux-headers-6.8.0-48-generic"
+        "kernelSource": "/usr/src/linux-headers-6.8.0-57-generic"
     },
     "configurations": [
         {
